@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const ai = new GoogleGenAI({ apiKey });
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image-preview", // ← model duy nhất gen ảnh được
+      model: "gemini-2.0-flash-exp", // ← model duy nhất gen ảnh được
       contents: [
         {
           role: "user",
