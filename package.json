@@ -11,7 +11,7 @@
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
-    "@google/generative-ai": "^0.15.0",
+    "@google/genai": "^1.0.0",
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1"
   },
