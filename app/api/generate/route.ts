@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI, Modality } from "@google/genai"; // ← đổi SDK
 
 export const maxDuration = 60;
 
@@ -18,17 +18,24 @@ export async function POST(req: NextRequest) {
     const base64Image = Buffer.from(imageBytes).toString("base64");
     const mimeType = imageFile.type || "image/png";
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3-flash-preview",
+    const ai = new GoogleGenAI({ apiKey });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-preview-image-generation", // ← model duy nhất gen ảnh được
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { inlineData: { mimeType, data: base64Image } },
+            { text: prompt },
+          ],
+        },
+      ],
+      config: {
+        responseModalities: [Modality.IMAGE, Modality.TEXT], // ← bắt buộc
+      },
     });
 
-    const result = await model.generateContent([
-      { inlineData: { data: base64Image, mimeType } },
-      prompt,
-    ]);
-
-    const response = result.response;
     const parts = response.candidates?.[0]?.content?.parts ?? [];
 
     for (const part of parts) {
@@ -41,8 +48,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback: text response
-    const text = response.text();
+    const text = parts.find((p) => p.text)?.text ?? "";
     return NextResponse.json({ error: `Gemini không trả về ảnh: ${text}` }, { status: 422 });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
